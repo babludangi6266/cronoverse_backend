@@ -8,8 +8,12 @@ const taskSchema = new mongoose.Schema({
   status: { type: String, enum: ['Pending', 'In Progress', 'Completed'], default: 'Pending' },
   dueDate: Date,
   isPersonal: { type: Boolean, default: false },
+  // NEW FIELD: Frequency
+  frequency: { 
+    type: String, 
+    enum: ['One-time', 'Daily', 'Weekly', 'Monthly'], 
+    default: 'One-time' 
+  }
 }, { timestamps: true });
 
-// CHANGE THIS LINE:
-// Check if 'Task' model exists; if yes, use it. If no, create it.
 module.exports = mongoose.models.Task || mongoose.model('Task', taskSchema);

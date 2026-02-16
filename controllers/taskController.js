@@ -15,16 +15,20 @@ exports.getMyTasks = async (req, res) => {
 // --- EMPLOYEE: Create Personal Todo ---
 exports.createPersonalTask = async (req, res) => {
   try {
-    const { title, description, dueDate } = req.body;
+    // added frequency to destructuring
+    const { title, description, dueDate, frequency } = req.body;
+    
     const newTask = new Task({
       title,
       description,
       dueDate,
-      assignedTo: req.user.id, // Assigned to self
-      assignedBy: req.user.id, // Created by self
+      frequency: frequency || 'One-time', // Default to One-time if empty
+      assignedTo: req.user.id,
+      assignedBy: req.user.id,
       isPersonal: true,
       status: 'Pending'
     });
+    
     await newTask.save();
     res.status(201).json(newTask);
   } catch (err) {
