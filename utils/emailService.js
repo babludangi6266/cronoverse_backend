@@ -21,22 +21,20 @@
 
 const nodemailer = require('nodemailer');
 
-// 1. Create Transporter with Explicit Settings
 const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com', // Explicitly connecting to Gmail
-  port: 465,              // Port 465 is for Secure SSL (More reliable on Cloud)
-  secure: true,           // Must be true for port 465
+  host: 'smtp.gmail.com',
+  port: 587,              // CHANGE TO 587
+  secure: false,          // MUST be false for 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
-  // 2. Add Timeouts to prevent hanging
-  connectionTimeout: 10000, // 10 seconds
-  greetingTimeout: 5000,    // 5 seconds
-  socketTimeout: 10000,     // 10 seconds
+  tls: {
+    rejectUnauthorized: false // This helps bypass some strict SSL checks on Render
+  },
+  connectionTimeout: 10000, 
 });
 
-// 3. Send Email Function
 const sendEmail = async (to, subject, html) => {
   try {
     const info = await transporter.sendMail({
@@ -45,12 +43,11 @@ const sendEmail = async (to, subject, html) => {
       subject,
       html,
     });
-    console.log("Email sent successfully:", info.messageId);
+    console.log("Email sent: " + info.messageId);
     return info;
   } catch (error) {
-    console.error("Error sending email:", error);
-    // Rethrow so the controller knows it failed
-    throw error; 
+    console.error("Email Error:", error);
+    throw error;
   }
 };
 
