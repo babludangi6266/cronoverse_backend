@@ -23,16 +23,16 @@ const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 587,              // CHANGE TO 587
-  secure: false,          // MUST be false for 587
+  port: 587,              // Standard TLS port
+  secure: false,          // Must be false for 587
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
   tls: {
-    rejectUnauthorized: false // This helps bypass some strict SSL checks on Render
+    rejectUnauthorized: false // Helps avoid SSL errors on some clouds
   },
-  connectionTimeout: 10000, 
+  family: 4, // <--- CRITICAL FIX: Forces IPv4 connection
 });
 
 const sendEmail = async (to, subject, html) => {
@@ -43,11 +43,11 @@ const sendEmail = async (to, subject, html) => {
       subject,
       html,
     });
-    console.log("Email sent: " + info.messageId);
+    console.log("Email sent successfully: " + info.messageId);
     return info;
   } catch (error) {
     console.error("Email Error:", error);
-    throw error;
+    throw error; // Rethrow so frontend sees the error
   }
 };
 
