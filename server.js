@@ -27,30 +27,39 @@ app.use(express.json());
 app.use('/api/auth', require('./routes/authRoutes')); // Create these files mapping to controllers
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
+app.use('/api/chat', require('./routes/chatRoutes'));
 
 // Socket.io Logic (Chat)
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  // Join Community
   socket.on('join_community', () => {
     socket.join('community');
   });
 
-  // Send Message
   socket.on('send_message', async (data) => {
-    // data = { senderId, message, name }
-    const newChat = new Chat({ sender: data.senderId, message: data.message });
-    await newChat.save();
-    
-    // Broadcast to everyone in 'community'
-    io.to('community').emit('receive_message', data);
+    try {
+      // data = { senderId, message, senderName }
+      
+      // 1. Save to Database
+      const newChat = new Chat({ 
+        sender: data.senderId, 
+        message: data.message,
+        room: 'community' // Explicitly set room
+      });
+      await newChat.save();
+      
+      // 2. Broadcast to everyone (including sender)
+      // We pass 'data' back because it already has senderName from frontend
+      io.to('community').emit('receive_message', data);
+    } catch (err) {
+      console.error("Error saving chat:", err);
+    }
   });
 
   socket.on('disconnect', () => {
     console.log('User disconnected');
   });
 });
-
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
