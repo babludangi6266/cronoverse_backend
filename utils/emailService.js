@@ -1,30 +1,9 @@
-// const nodemailer = require('nodemailer');
-
-// const transporter = nodemailer.createTransport({
-//   service: 'gmail',
-//   auth: {
-//     user: process.env.EMAIL_USER,
-//     pass: process.env.EMAIL_PASS, // Use Google App Password
-//   },
-// });
-
-// const sendEmail = async (to, subject, html) => {
-//   await transporter.sendMail({
-//     from: `"Lexa Admin" <${process.env.EMAIL_USER}>`,
-//     to,
-//     subject,
-//     html,
-//   });
-// };
-
-// module.exports = sendEmail;
-
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 587,              // Standard TLS port
-  secure: false,          // Must be false for 587
+  port: 587,              
+  secure: false,          
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
@@ -32,7 +11,7 @@ const transporter = nodemailer.createTransport({
   tls: {
     rejectUnauthorized: false // Helps avoid SSL errors on some clouds
   },
-  family: 4, // <--- CRITICAL FIX: Forces IPv4 connection
+  family: 4, // <--- CRITICAL FIX: Forces IPv4 connection (Fixes ENETUNREACH)
 });
 
 const sendEmail = async (to, subject, html) => {
