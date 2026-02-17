@@ -3,14 +3,18 @@ const nodemailer = require('nodemailer');
 // Create the transporter using the settings that worked for you
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
-  port: 587,              // Standard TLS port
-  secure: false,          // Must be false for port 587
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EMAIL_USER,
     pass: process.env.EMAIL_PASS,
   },
+  connectionTimeout: 10000, // 10 seconds timeout
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
+  // Force IPv4
+  family: 4, // Add this line to use only IPv4
 });
-
 const sendEmail = async (to, subject, html) => {
   try {
     const info = await transporter.sendMail({
