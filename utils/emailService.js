@@ -1,28 +1,26 @@
-const nodemailer = require('nodemailer');
+const { Resend } = require('resend');
 
-// Create the transporter using the settings that worked for you
-const transporter = nodemailer.createTransport({
-  host: 'smtp.resend.com',
-  port: 587,
-  secure: false,
-  auth: {
-    user: 'resend',
-    pass: process.env.RESEND_API_KEY, // Your Resend API key
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
+
 const sendEmail = async (to, subject, html) => {
   try {
-    const info = await transporter.sendMail({
-      from: `"Lexa Admin" <${process.env.EMAIL_USER}>`, // Sender address
-      to: to, // Receiver address (passed as argument)
+    const { data, error } = await resend.emails.send({
+      from: 'babludangi2000@gmail.com', // Default for testing; verify a domain for custom 'from'
+      to: [to],
       subject: subject,
       html: html,
     });
-    console.log("Email sent successfully: " + info.messageId);
-    return info;
+
+    if (error) {
+      console.error('Email Error:', error);
+      throw error;
+    }
+
+    console.log('Email sent successfully:', data.id);
+    return data;
   } catch (error) {
-    console.error("Email Error:", error);
-    throw error; // Rethrow so the controller knows it failed
+    console.error('Email Error:', error);
+    throw error;
   }
 };
 
