@@ -13,10 +13,13 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    // origin: process.env.CLIENT_URL, 
-    origin: "*", // Allow all origins for testing, change in production
-    methods: ["GET", "POST" , "PUT", "DELETE" , "PATCH"]
-  }
+    origin: "*", // Allow all origins
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
+  },
+  // --- NEW: Render Stability Settings ---
+  pingTimeout: 60000,     // Wait 60 seconds before closing an idle connection
+  pingInterval: 25000,    // Send a heartbeat every 25 seconds to keep Render awake
+  transports: ['websocket', 'polling']
 });
 
 // Middleware
