@@ -29,6 +29,7 @@ app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/clients', require('./routes/clientRoutes'));
+app.use('/api/bot', require('./routes/botRoutes'));
 
 // Replace your existing io.on('connection') with this:
 io.on('connection', (socket) => {
