@@ -1,5 +1,6 @@
 const Task = require('../models/Task');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 
 // --- COMMON: Get Tasks ---
 exports.getMyTasks = async (req, res) => {
@@ -108,4 +109,68 @@ exports.getUserTasks = async (req, res) => {
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
+};
+
+exports.addNoteToTask = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { text } = req.body;
+
+    // Fetch the user to get their name
+    const currentUser = await User.findById(req.user.id);
+
+    const task = await Task.findById(taskId);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+
+    // Push the new note into the array
+    task.notes.push({
+      text,
+      addedBy: currentUser._id,
+      addedByName: currentUser.name
+    });
+
+    await task.save();
+    res.status(201).json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// --- ADMIN: Get ALL Company Tasks (For Global Calendar) ---
+exports.getAllTasks = async (req, res) => {
+  try {
+    // We add .populate() so the calendar receives the Employee's Name and Role
+    const tasks = await Task.find({})
+      .populate('assignedTo', 'name areaOfInterest')
+      .sort({ createdAt: -1 });
+      
+    res.json(tasks);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.logTaskTime = async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const { hours } = req.body; // Number of hours to add
+
+    const task = await Task.findById(taskId);
+    if (!task) return res.status(404).json({ error: "Task not found" });
+
+    // Add the new hours to the existing total
+    task.timeLogged = (task.timeLogged || 0) + Number(hours);
+    
+    // Automatically add a note about the time logged for transparency
+    task.notes.push({
+      text: `Logged ${hours} hours of work.`,
+      addedBy: req.user.id,
+      addedByName: req.user.name || 'System'
+    });
+
+    await task.save();
+    res.json(task);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };

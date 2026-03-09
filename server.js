@@ -28,33 +28,36 @@ app.use('/api/auth', require('./routes/authRoutes')); // Create these files mapp
 app.use('/api/admin', require('./routes/adminRoutes'));
 app.use('/api/tasks', require('./routes/taskRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
+app.use('/api/clients', require('./routes/clientRoutes'));
 
-// Socket.io Logic (Chat)
+// Replace your existing io.on('connection') with this:
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 
-  socket.on('join_community', () => {
-    socket.join('community');
+  // Join a specific room (Community or Private DM)
+  socket.on('join_room', (room) => {
+    socket.join(room);
   });
 
   socket.on('send_message', async (data) => {
     try {
-      // data = { senderId, message, senderName }
-      
-      // 1. Save to Database
+      // 1. Save to Database with the dynamic room ID
       const newChat = new Chat({ 
         sender: data.senderId, 
         message: data.message,
-        room: 'community' // Explicitly set room
+        room: data.room 
       });
       await newChat.save();
       
-      // 2. Broadcast to everyone (including sender)
-      // We pass 'data' back because it already has senderName from frontend
-      io.to('community').emit('receive_message', data);
+      // 2. Broadcast to everyone in that specific room
+      io.to(data.room).emit('receive_message', data);
     } catch (err) {
       console.error("Error saving chat:", err);
     }
+  });
+
+  socket.on('clear_chat_event', (room) => {
+    io.to(room).emit('chat_was_cleared', room);
   });
 
   socket.on('disconnect', () => {

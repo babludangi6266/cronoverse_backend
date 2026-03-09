@@ -32,7 +32,7 @@ exports.reviewOnboarding = async (req, res) => {
     // --- EMAIL TEMPLATE CONFIG ---
     // 1. UPLOAD YOUR LOGO to a public URL and paste it here.
     // If you don't have one yet, use this placeholder or your website logo link.
-    const LOGO_URL = "https://placehold.co/150x50/020617/06B6D4?text=LEXA"; 
+    const LOGO_URL = "https://lexatechnologies.com/assets/logo-DEZrUcm8.png"; 
     
     // 2. Common Email Styles
     const containerStyle = `
@@ -96,7 +96,7 @@ exports.reviewOnboarding = async (req, res) => {
             <p>Congratulations! We’ve reviewed your onboarding task, and we are thrilled to welcome you officially to <strong>Lexa Technologies</strong>.</p>
             <p>Your portal access is now <strong>Active</strong>. You can log in immediately to view your dashboard, access team resources, and start your journey with us.</p>
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}/portal/login" style="background-color: #06B6D4; color: #FFFFFF; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">Go to Dashboard</a>
+              <a href="${process.env.CLIENT_URL || 'https://lexatechnologies.com/'}/portal/login" style="background-color: #06B6D4; color: #FFFFFF; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; display: inline-block;">Go to Dashboard</a>
             </div>
             ${signatureBlock}
           </div>
@@ -152,6 +152,22 @@ exports.getReports = async (req, res) => {
     const completedTasks = await Task.countDocuments({ status: 'Completed' });
 
     res.json({ totalUsers, activeUsers, pendingUsers, completedTasks });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// --- ADMIN: Delete User ---
+exports.deleteUser = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Optional: Delete their personal tasks so they don't clutter the DB
+    await Task.deleteMany({ assignedTo: user._id, isPersonal: true });
+
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: "Employee removed successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
